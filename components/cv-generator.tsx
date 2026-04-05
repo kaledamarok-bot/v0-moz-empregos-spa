@@ -17,6 +17,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -175,6 +176,9 @@ export function CVGenerator() {
                     <FileText className="w-5 h-5 text-primary" />
                     Gerador de Currículo
                   </DialogTitle>
+                  <DialogDescription>
+                    Preencha seus dados e baixe um currículo profissional em PDF gratuitamente.
+                  </DialogDescription>
                 </DialogHeader>
                 
                 <form className="flex flex-col gap-4 mt-4" onSubmit={(e) => e.preventDefault()}>

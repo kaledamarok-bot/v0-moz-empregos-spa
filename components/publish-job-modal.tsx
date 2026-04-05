@@ -15,6 +15,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -54,6 +55,9 @@ export function PublishJobModal({ open, onOpenChange }: PublishJobModalProps) {
             <Building2 className="w-5 h-5 text-primary" />
             Publicar Nova Vaga
           </DialogTitle>
+          <DialogDescription>
+            Preencha os dados da vaga. A publicação é gratuita e será analisada antes de ser publicada.
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
