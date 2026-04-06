@@ -1,19 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { FileText, Download } from "lucide-react"
+import { FileText, Download, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface FormData {
@@ -25,7 +17,7 @@ interface FormData {
 }
 
 export function CVGenerator() {
-  const [open, setOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     nome: "",
@@ -113,7 +105,7 @@ export function CVGenerator() {
   const isFormValid = formData.nome && formData.vagaDesejada && formData.telefone && formData.email
 
   return (
-    <section className="py-8 px-4 bg-secondary">
+    <section id="curriculo" className="py-8 px-4 bg-secondary">
       <div className="container mx-auto max-w-3xl">
         <Card className="bg-card border-border">
           <CardHeader className="text-center pb-4">
@@ -126,98 +118,98 @@ export function CVGenerator() {
             </p>
           </CardHeader>
           <CardContent>
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-12">
+            <Button 
+              onClick={() => setExpanded(!expanded)}
+              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-12"
+            >
+              {expanded ? (
+                <>
+                  Fechar Formulário
+                  <ChevronUp className="w-5 h-5 ml-2" />
+                </>
+              ) : (
+                <>
                   Criar Meu Currículo
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-card">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2 text-foreground">
-                    <FileText className="w-5 h-5 text-primary" />
-                    Gerador de Currículo
-                  </DialogTitle>
-                  <DialogDescription>
-                    Preencha seus dados abaixo para gerar e baixar seu currículo em PDF.
-                  </DialogDescription>
-                </DialogHeader>
+                  <ChevronDown className="w-5 h-5 ml-2" />
+                </>
+              )}
+            </Button>
+            
+            {expanded && (
+              <form className="flex flex-col gap-4 mt-6 pt-6 border-t border-border" onSubmit={(e) => e.preventDefault()}>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="nome" className="text-foreground">Nome *</Label>
+                  <Input
+                    id="nome"
+                    placeholder="Ex: João Manuel Silva"
+                    value={formData.nome}
+                    onChange={(e) => handleInputChange("nome", e.target.value)}
+                    className="bg-background"
+                  />
+                </div>
                 
-                <form className="flex flex-col gap-4 mt-4" onSubmit={(e) => e.preventDefault()}>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="nome" className="text-foreground">Nome *</Label>
-                    <Input
-                      id="nome"
-                      placeholder="Ex: João Manuel Silva"
-                      value={formData.nome}
-                      onChange={(e) => handleInputChange("nome", e.target.value)}
-                      className="bg-background"
-                    />
-                  </div>
-                  
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="vagaDesejada" className="text-foreground">Vaga Desejada *</Label>
-                    <Input
-                      id="vagaDesejada"
-                      placeholder="Ex: Repositor, Recepcionista, Segurança"
-                      value={formData.vagaDesejada}
-                      onChange={(e) => handleInputChange("vagaDesejada", e.target.value)}
-                      className="bg-background"
-                    />
-                  </div>
-                  
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="telefone" className="text-foreground">Telefone *</Label>
-                    <Input
-                      id="telefone"
-                      placeholder="Ex: +258 84 123 4567"
-                      value={formData.telefone}
-                      onChange={(e) => handleInputChange("telefone", e.target.value)}
-                      className="bg-background"
-                    />
-                  </div>
-                  
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="email" className="text-foreground">E-mail *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Ex: joao.silva@email.com"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      className="bg-background"
-                    />
-                  </div>
-                  
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="qualificacoes" className="text-foreground">Qualificações</Label>
-                    <Textarea
-                      id="qualificacoes"
-                      placeholder="Ex: Ensino Médio Completo, Curso de Informática, Experiência em atendimento ao cliente..."
-                      value={formData.qualificacoes}
-                      onChange={(e) => handleInputChange("qualificacoes", e.target.value)}
-                      className="bg-background min-h-[120px]"
-                    />
-                  </div>
-                  
-                  <Button
-                    type="button"
-                    onClick={generatePDF}
-                    disabled={!isFormValid || isGenerating}
-                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-12 mt-2"
-                  >
-                    {isGenerating ? (
-                      "Gerando..."
-                    ) : (
-                      <>
-                        <Download className="w-5 h-5 mr-2" />
-                        Baixar Currículo
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="vagaDesejada" className="text-foreground">Vaga Desejada *</Label>
+                  <Input
+                    id="vagaDesejada"
+                    placeholder="Ex: Repositor, Recepcionista, Segurança"
+                    value={formData.vagaDesejada}
+                    onChange={(e) => handleInputChange("vagaDesejada", e.target.value)}
+                    className="bg-background"
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="telefone" className="text-foreground">Telefone *</Label>
+                  <Input
+                    id="telefone"
+                    placeholder="Ex: +258 84 123 4567"
+                    value={formData.telefone}
+                    onChange={(e) => handleInputChange("telefone", e.target.value)}
+                    className="bg-background"
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="email" className="text-foreground">E-mail *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Ex: joao.silva@email.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    className="bg-background"
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="qualificacoes" className="text-foreground">Qualificações</Label>
+                  <Textarea
+                    id="qualificacoes"
+                    placeholder="Ex: Ensino Médio Completo, Curso de Informática, Experiência em atendimento ao cliente..."
+                    value={formData.qualificacoes}
+                    onChange={(e) => handleInputChange("qualificacoes", e.target.value)}
+                    className="bg-background min-h-[120px]"
+                  />
+                </div>
+                
+                <Button
+                  type="button"
+                  onClick={generatePDF}
+                  disabled={!isFormValid || isGenerating}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-12 mt-2"
+                >
+                  {isGenerating ? (
+                    "Gerando..."
+                  ) : (
+                    <>
+                      <Download className="w-5 h-5 mr-2" />
+                      Baixar Currículo
+                    </>
+                  )}
+                </Button>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>

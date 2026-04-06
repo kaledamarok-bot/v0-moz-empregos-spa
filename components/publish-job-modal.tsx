@@ -12,13 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 
 const provincias = [
   "Maputo Cidade",
@@ -42,25 +35,51 @@ interface PublishJobModalProps {
 export function PublishJobModal({ open, onOpenChange }: PublishJobModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Em produção, aqui enviaria para uma API
     alert("Vaga enviada para análise! Entraremos em contacto em breve.")
     onOpenChange(false)
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-card">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-foreground">
-            <Building2 className="w-5 h-5 text-primary" />
-            Publicar Nova Vaga
-          </DialogTitle>
-          <DialogDescription>
-            Preencha os dados da vaga. A publicação é gratuita e será analisada antes de ser publicada.
-          </DialogDescription>
-        </DialogHeader>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/50" 
+        onClick={() => onOpenChange(false)}
+        aria-hidden="true"
+      />
+      
+      {/* Modal */}
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="publish-job-title"
+        aria-describedby="publish-job-description"
+        className="relative z-50 w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card rounded-lg border border-border p-6 shadow-lg mx-4"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 id="publish-job-title" className="flex items-center gap-2 text-lg font-semibold text-foreground">
+              <Building2 className="w-5 h-5 text-primary" />
+              Publicar Nova Vaga
+            </h2>
+            <p id="publish-job-description" className="text-sm text-muted-foreground mt-1">
+              Preencha os dados da vaga. A publicação é gratuita e será analisada antes de ser publicada.
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(false)}
+            className="h-8 w-8"
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
         
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="empresa" className="text-foreground">Nome da Empresa *</Label>
             <Input
@@ -137,7 +156,7 @@ export function PublishJobModal({ open, onOpenChange }: PublishJobModalProps) {
             Enviar Vaga para Análise
           </Button>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   )
 }
