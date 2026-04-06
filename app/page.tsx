@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { jsPDF } from "jspdf"
-import { Search, MapPin, Briefcase, Phone, Mail, User, FileText, MessageCircle, Building2, Clock, DollarSign, Star, ChevronDown, X } from "lucide-react"
+import { Search, MapPin, Briefcase, Phone, Mail, User, FileText, MessageCircle, Clock, DollarSign, Star, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -44,6 +44,33 @@ const vagas = [
     salario: "12.000 MT",
     tipo: "Tempo Integral",
     descricao: "Limpeza e higienização das instalações da clínica."
+  },
+  {
+    id: 4,
+    titulo: "Caixa",
+    empresa: "Loja ModaStyle",
+    local: "Maputo",
+    salario: "14.000 MT",
+    tipo: "Tempo Integral",
+    descricao: "Operação de caixa, atendimento ao cliente e fechamento diário."
+  },
+  {
+    id: 5,
+    titulo: "Segurança",
+    empresa: "Centro Comercial Maputo",
+    local: "Maputo",
+    salario: "16.000 MT",
+    tipo: "Tempo Integral",
+    descricao: "Vigilância patrimonial, controle de acesso e rondas de segurança."
+  },
+  {
+    id: 6,
+    titulo: "Vendedor",
+    empresa: "TechStore Moçambique",
+    local: "Nampula",
+    salario: "13.000 MT + Comissão",
+    tipo: "Tempo Integral",
+    descricao: "Vendas de produtos eletrônicos, atendimento ao cliente e metas mensais."
   },
 ]
 
@@ -102,8 +129,9 @@ export default function Home() {
   const [qualificacoes, setQualificacoes] = useState("")
   const [cvGerado, setCvGerado] = useState(false)
   
-  // Modal de publicar vaga
-  const [modalAberto, setModalAberto] = useState(false)
+  // Modal de candidatura
+  const [modalCandidatura, setModalCandidatura] = useState(false)
+  const [vagaSelecionada, setVagaSelecionada] = useState<typeof vagas[0] | null>(null)
 
   const filteredVagas = vagas.filter(v => {
     const matchSearch = v.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -186,11 +214,14 @@ export default function Home() {
             <span className="text-xl font-bold">MozEmpregos</span>
           </div>
           <Button 
-            onClick={() => setModalAberto(true)}
+            onClick={() => {
+              setVagaSelecionada(null)
+              setModalCandidatura(true)
+            }}
             className="bg-[#10b981] hover:bg-[#059669] text-white font-semibold"
           >
-            <Building2 className="w-4 h-4 mr-2" />
-            Publicar Vaga
+            <FileText className="w-4 h-4 mr-2" />
+            Candidatar a Vaga
           </Button>
         </div>
       </header>
@@ -276,7 +307,14 @@ export default function Home() {
                         {vaga.salario}
                       </span>
                     </div>
-                    <Button className="w-full bg-[#1e40af] hover:bg-[#1e3a8a] text-white">
+                    <Button 
+                      className="w-full bg-[#1e40af] hover:bg-[#1e3a8a] text-white"
+                      onClick={() => {
+                        setVagaSelecionada(vaga)
+                        setVaga(vaga.titulo)
+                        setModalCandidatura(true)
+                      }}
+                    >
                       Candidatar-se
                     </Button>
                   </CardContent>
@@ -463,12 +501,12 @@ export default function Home() {
         <MessageCircle className="w-7 h-7" />
       </a>
 
-      {/* Modal Publicar Vaga */}
-      {modalAberto && (
+      {/* Modal Candidatura */}
+      {modalCandidatura && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
           onClick={(e) => {
-            if (e.target === e.currentTarget) setModalAberto(false)
+            if (e.target === e.currentTarget) setModalCandidatura(false)
           }}
         >
           <div 
@@ -481,11 +519,11 @@ export default function Home() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 id="modal-title" className="text-xl font-bold text-foreground flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-[#1e40af]" />
-                  Publicar Nova Vaga
+                  <FileText className="w-5 h-5 text-[#1e40af]" />
+                  {vagaSelecionada ? `Candidatura: ${vagaSelecionada.titulo}` : "Preencher Currículo"}
                 </h3>
                 <button 
-                  onClick={() => setModalAberto(false)}
+                  onClick={() => setModalCandidatura(false)}
                   className="text-muted-foreground hover:text-foreground"
                   aria-label="Fechar"
                 >
@@ -493,55 +531,111 @@ export default function Home() {
                 </button>
               </div>
               <p id="modal-description" className="text-muted-foreground text-sm mb-6">
-                Preencha os dados da vaga. A publicação é gratuita e será analisada antes de ser publicada.
+                {vagaSelecionada 
+                  ? `Preencha seus dados para se candidatar à vaga de ${vagaSelecionada.titulo} na ${vagaSelecionada.empresa}.`
+                  : "Preencha seus dados e baixe seu currículo em PDF para se candidatar às vagas."
+                }
               </p>
+              
+              {vagaSelecionada && (
+                <div className="bg-[#1e40af]/5 border border-[#1e40af]/20 rounded-lg p-4 mb-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-semibold text-foreground">{vagaSelecionada.titulo}</p>
+                      <p className="text-sm text-muted-foreground">{vagaSelecionada.empresa} - {vagaSelecionada.local}</p>
+                    </div>
+                    <span className="text-[#10b981] font-semibold text-sm">{vagaSelecionada.salario}</span>
+                  </div>
+                </div>
+              )}
               
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Nome da Empresa *</Label>
-                  <Input placeholder="Ex: Supermercado Central" />
+                  <Label className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-[#1e40af]" />
+                    Nome Completo *
+                  </Label>
+                  <Input 
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    placeholder="Seu nome completo" 
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label>Título da Vaga *</Label>
-                  <Input placeholder="Ex: Repositor, Recepcionista" />
+                  <Label className="flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-[#1e40af]" />
+                    Vaga Desejada *
+                  </Label>
+                  <Input 
+                    value={vaga}
+                    onChange={(e) => setVaga(e.target.value)}
+                    placeholder="Ex: Repositor, Recepcionista" 
+                  />
                 </div>
                 <div className="grid gap-4 grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Localização *</Label>
-                    <Input placeholder="Ex: Maputo" />
+                    <Label className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-[#1e40af]" />
+                      Telefone *
+                    </Label>
+                    <Input 
+                      type="tel"
+                      value={telefone}
+                      onChange={(e) => setTelefone(e.target.value)}
+                      placeholder="+258 84 123 4567" 
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label>Salário</Label>
-                    <Input placeholder="Ex: 15.000 MT" />
+                    <Label className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-[#1e40af]" />
+                      E-mail *
+                    </Label>
+                    <Input 
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu@email.com" 
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Descrição da Vaga *</Label>
-                  <Textarea placeholder="Descreva as responsabilidades e requisitos..." rows={3} />
-                </div>
-                <div className="space-y-2">
-                  <Label>E-mail de Contato *</Label>
-                  <Input type="email" placeholder="empresa@email.com" />
+                  <Label className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-[#1e40af]" />
+                    Qualificações
+                  </Label>
+                  <Textarea 
+                    value={qualificacoes}
+                    onChange={(e) => setQualificacoes(e.target.value)}
+                    placeholder="Descreva suas habilidades, formação e experiências relevantes..." 
+                    rows={4} 
+                  />
                 </div>
                 
                 <div className="flex gap-3 pt-4">
                   <Button 
                     variant="outline" 
                     className="flex-1"
-                    onClick={() => setModalAberto(false)}
+                    onClick={() => setModalCandidatura(false)}
                   >
                     Cancelar
                   </Button>
                   <Button 
                     className="flex-1 bg-[#10b981] hover:bg-[#059669] text-white"
                     onClick={() => {
-                      alert("Vaga enviada para análise! Entraremos em contato em breve.")
-                      setModalAberto(false)
+                      gerarPDF()
+                      setModalCandidatura(false)
                     }}
                   >
-                    Publicar Vaga
+                    <FileText className="w-4 h-4 mr-2" />
+                    Baixar Currículo
                   </Button>
                 </div>
+
+                {cvGerado && (
+                  <p className="text-center text-[#10b981] font-medium">
+                    Currículo gerado com sucesso! Verifique seus downloads.
+                  </p>
+                )}
               </div>
             </div>
           </div>
