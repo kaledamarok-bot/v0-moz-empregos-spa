@@ -80,49 +80,49 @@ const depoimentos = [
     nome: "Artur Machava",
     cargo: "Repositor",
     texto: "Consegui meu primeiro emprego em apenas 2 semanas usando o MozEmpregos! Agora trabalho no Supermercado Central e estou muito feliz.",
-    foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
+    foto: "/photos/artur.jpg"
   },
   {
-    nome: "Fátima Nhaca",
+    nome: "Fatima Nhaca",
     cargo: "Recepcionista",
-    texto: "O gerador de currículo me ajudou muito. Agora trabalho no melhor hotel da cidade! Obrigada MozEmpregos!",
-    foto: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
+    texto: "O gerador de curriculo me ajudou muito. Agora trabalho no melhor hotel da cidade! Obrigada MozEmpregos!",
+    foto: "/photos/fatima.jpg"
   },
   {
     nome: "Carlos Sitoe",
     cargo: "Auxiliar de Limpeza",
-    texto: "Estava desempregado há 6 meses. Graças ao MozEmpregos, voltei ao mercado e posso sustentar minha família.",
-    foto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face"
+    texto: "Estava desempregado ha 6 meses. Gracas ao MozEmpregos, voltei ao mercado e posso sustentar minha familia.",
+    foto: "/photos/carlos.jpg"
   },
   {
     nome: "Ana Mondlane",
     cargo: "Atendente",
     texto: "Plataforma simples e eficiente. Recomendo a todos os jovens que buscam o primeiro emprego!",
-    foto: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
+    foto: "/photos/ana.jpg"
   },
   {
-    nome: "João Tembe",
-    cargo: "Segurança",
-    texto: "Nunca pensei que seria tão fácil encontrar emprego. Em uma semana já estava trabalhando! Muito grato.",
-    foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+    nome: "Joao Tembe",
+    cargo: "Seguranca",
+    texto: "Nunca pensei que seria tao facil encontrar emprego. Em uma semana ja estava trabalhando! Muito grato.",
+    foto: "/photos/joao.jpg"
   },
   {
     nome: "Maria Cossa",
     cargo: "Caixa",
-    texto: "O MozEmpregos mudou minha vida. Saí do desemprego e agora tenho uma carreira estável. Recomendo muito!",
-    foto: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100&h=100&fit=crop&crop=face"
+    texto: "O MozEmpregos mudou minha vida. Sai do desemprego e agora tenho uma carreira estavel. Recomendo muito!",
+    foto: "/photos/maria.jpg"
   },
   {
     nome: "Pedro Matusse",
     cargo: "Vendedor",
-    texto: "Encontrei a vaga perfeita para mim. A comissão é excelente e o ambiente de trabalho é ótimo!",
-    foto: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face"
+    texto: "Encontrei a vaga perfeita para mim. A comissao e excelente e o ambiente de trabalho e otimo!",
+    foto: "/photos/pedro.jpg"
   },
   {
     nome: "Teresa Langa",
     cargo: "Recepcionista",
-    texto: "Meu currículo ficou muito profissional com o gerador do MozEmpregos. Foi isso que me destacou na entrevista!",
-    foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face"
+    texto: "Meu curriculo ficou muito profissional com o gerador do MozEmpregos. Foi isso que me destacou na entrevista!",
+    foto: "/photos/teresa.jpg"
   },
 ]
 
