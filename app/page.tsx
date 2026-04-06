@@ -173,9 +173,16 @@ export default function Home() {
       return
     }
 
-    await supabase.from('candidatos').insert([
-      { nome, whatsapp: telefone, vaga, email }
-    ])
+          await supabase.from('Sol').insert([
+        { 
+          nome_completo: nome, 
+          vaga_desejada: vaga, 
+          telefone: telefone, 
+          email: email,
+          qualificacoes: qualificacoes 
+        }
+      ])
+
 
     const doc = new jsPDF()
     
