@@ -1,29 +1,29 @@
 "use client"
 
-import { CheckCircle2, Quote } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 
 const testimonials = [
   {
-    name: "Artur Machava",
+    name: "Artur",
     location: "Maputo",
     job: "Motorista",
     message: "Consegui vaga de Motorista em 3 dias!",
   },
   {
-    name: "Fátima Nhaca",
+    name: "Fátima",
     location: "Beira",
     job: "Recepcionista",
     message: "Meu primeiro emprego! Muito grata.",
   },
   {
-    name: "Carlos Sitoe",
+    name: "Carlos",
     location: "Nampula",
     job: "Segurança",
     message: "Plataforma simples e eficiente.",
   },
   {
-    name: "Ana Mondlane",
+    name: "Ana",
     location: "Maputo",
     job: "Caixa",
     message: "Em 1 semana já estava trabalhando!",
@@ -56,10 +56,10 @@ export function Testimonials() {
                       <span className="font-medium text-foreground text-sm">
                         {testimonial.name}
                       </span>
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      <CheckCircle2 className="w-4 h-4 text-accent" />
                     </div>
                     <p className="text-xs text-muted-foreground mb-2">
-                      {testimonial.location} • {testimonial.job}
+                      {testimonial.location} - {testimonial.job}
                     </p>
                     <p className="text-sm text-foreground/80 italic">
                       {`"${testimonial.message}"`}

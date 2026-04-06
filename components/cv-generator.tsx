@@ -1,19 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { FileText, Download, X } from "lucide-react"
+import { FileText, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -24,44 +16,23 @@ import {
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-const provincias = [
-  "Maputo Cidade",
-  "Maputo Província",
-  "Gaza",
-  "Inhambane",
-  "Sofala",
-  "Manica",
-  "Tete",
-  "Zambézia",
-  "Nampula",
-  "Cabo Delgado",
-  "Niassa",
-]
-
 interface FormData {
   nome: string
-  contacto: string
+  vagaDesejada: string
+  telefone: string
   email: string
-  provincia: string
-  objetivo: string
-  educacao: string
-  habilidades: string
-  experiencia: string
+  qualificacoes: string
 }
 
 export function CVGenerator() {
   const [open, setOpen] = useState(false)
-  const [isFirstJob, setIsFirstJob] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     nome: "",
-    contacto: "",
+    vagaDesejada: "",
+    telefone: "",
     email: "",
-    provincia: "",
-    objetivo: "",
-    educacao: "",
-    habilidades: "",
-    experiencia: "",
+    qualificacoes: "",
   })
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -80,8 +51,8 @@ export function CVGenerator() {
       const contentWidth = pageWidth - margin * 2
       let yPos = 20
 
-      // Header com nome
-      doc.setFillColor(37, 99, 235) // Azul Royal
+      // Header com nome - Azul Royal #1e40af
+      doc.setFillColor(30, 64, 175)
       doc.rect(0, 0, pageWidth, 45, "F")
       
       doc.setTextColor(255, 255, 255)
@@ -91,11 +62,10 @@ export function CVGenerator() {
       
       doc.setFontSize(11)
       doc.setFont("helvetica", "normal")
-      const contactInfo = `${formData.contacto} | ${formData.email} | ${formData.provincia}`
+      const contactInfo = `${formData.telefone} | ${formData.email}`
       doc.text(contactInfo, pageWidth / 2, 37, { align: "center" })
       
       yPos = 60
-      doc.setTextColor(37, 99, 235)
       
       // Função auxiliar para adicionar seção
       const addSection = (title: string, content: string) => {
@@ -103,11 +73,11 @@ export function CVGenerator() {
         
         doc.setFontSize(14)
         doc.setFont("helvetica", "bold")
-        doc.setTextColor(37, 99, 235)
+        doc.setTextColor(30, 64, 175) // Azul Royal
         doc.text(title, margin, yPos)
         yPos += 2
         
-        doc.setDrawColor(37, 99, 235)
+        doc.setDrawColor(30, 64, 175)
         doc.setLineWidth(0.5)
         doc.line(margin, yPos, margin + contentWidth, yPos)
         yPos += 8
@@ -121,19 +91,11 @@ export function CVGenerator() {
         yPos += lines.length * 6 + 10
       }
 
-      // Objetivo
-      addSection("OBJETIVO PROFISSIONAL", formData.objetivo)
+      // Vaga Desejada
+      addSection("VAGA DESEJADA", formData.vagaDesejada)
       
-      // Educação
-      addSection("EDUCAÇÃO", formData.educacao)
-      
-      // Habilidades
-      addSection("HABILIDADES", formData.habilidades)
-      
-      // Experiência (apenas se não for primeiro emprego)
-      if (!isFirstJob && formData.experiencia) {
-        addSection("EXPERIÊNCIA PROFISSIONAL", formData.experiencia)
-      }
+      // Qualificações
+      addSection("QUALIFICAÇÕES", formData.qualificacoes)
       
       // Rodapé
       doc.setFontSize(8)
@@ -148,7 +110,7 @@ export function CVGenerator() {
     }
   }
 
-  const isFormValid = formData.nome && formData.contacto && formData.email && formData.provincia
+  const isFormValid = formData.nome && formData.vagaDesejada && formData.telefone && formData.email
 
   return (
     <section className="py-8 px-4 bg-secondary">
@@ -177,13 +139,13 @@ export function CVGenerator() {
                     Gerador de Currículo
                   </DialogTitle>
                   <DialogDescription>
-                    Preencha seus dados e baixe um currículo profissional em PDF gratuitamente.
+                    Preencha seus dados abaixo para gerar e baixar seu currículo em PDF.
                   </DialogDescription>
                 </DialogHeader>
                 
                 <form className="flex flex-col gap-4 mt-4" onSubmit={(e) => e.preventDefault()}>
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="nome" className="text-foreground">Nome Completo *</Label>
+                    <Label htmlFor="nome" className="text-foreground">Nome *</Label>
                     <Input
                       id="nome"
                       placeholder="Ex: João Manuel Silva"
@@ -194,18 +156,29 @@ export function CVGenerator() {
                   </div>
                   
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="contacto" className="text-foreground">Contacto (+258) *</Label>
+                    <Label htmlFor="vagaDesejada" className="text-foreground">Vaga Desejada *</Label>
                     <Input
-                      id="contacto"
-                      placeholder="Ex: +258 84 123 4567"
-                      value={formData.contacto}
-                      onChange={(e) => handleInputChange("contacto", e.target.value)}
+                      id="vagaDesejada"
+                      placeholder="Ex: Repositor, Recepcionista, Segurança"
+                      value={formData.vagaDesejada}
+                      onChange={(e) => handleInputChange("vagaDesejada", e.target.value)}
                       className="bg-background"
                     />
                   </div>
                   
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="email" className="text-foreground">Email *</Label>
+                    <Label htmlFor="telefone" className="text-foreground">Telefone *</Label>
+                    <Input
+                      id="telefone"
+                      placeholder="Ex: +258 84 123 4567"
+                      value={formData.telefone}
+                      onChange={(e) => handleInputChange("telefone", e.target.value)}
+                      className="bg-background"
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="email" className="text-foreground">E-mail *</Label>
                     <Input
                       id="email"
                       type="email"
@@ -217,85 +190,15 @@ export function CVGenerator() {
                   </div>
                   
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="provincia" className="text-foreground">Província *</Label>
-                    <Select 
-                      value={formData.provincia} 
-                      onValueChange={(value) => handleInputChange("provincia", value)}
-                    >
-                      <SelectTrigger className="bg-background">
-                        <SelectValue placeholder="Selecione sua província" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {provincias.map((provincia) => (
-                          <SelectItem key={provincia} value={provincia}>
-                            {provincia}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-3 px-4 bg-primary/5 rounded-lg border border-primary/20">
-                    <div className="flex flex-col">
-                      <Label htmlFor="first-job" className="text-foreground font-medium">
-                        É meu primeiro emprego?
-                      </Label>
-                      <span className="text-xs text-muted-foreground">
-                        Foque em objetivo e educação
-                      </span>
-                    </div>
-                    <Switch
-                      id="first-job"
-                      checked={isFirstJob}
-                      onCheckedChange={setIsFirstJob}
-                    />
-                  </div>
-                  
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="objetivo" className="text-foreground">Objetivo Profissional</Label>
+                    <Label htmlFor="qualificacoes" className="text-foreground">Qualificações</Label>
                     <Textarea
-                      id="objetivo"
-                      placeholder="Ex: Busco uma oportunidade para desenvolver minhas habilidades e contribuir para o crescimento da empresa."
-                      value={formData.objetivo}
-                      onChange={(e) => handleInputChange("objetivo", e.target.value)}
-                      className="bg-background min-h-[80px]"
+                      id="qualificacoes"
+                      placeholder="Ex: Ensino Médio Completo, Curso de Informática, Experiência em atendimento ao cliente..."
+                      value={formData.qualificacoes}
+                      onChange={(e) => handleInputChange("qualificacoes", e.target.value)}
+                      className="bg-background min-h-[120px]"
                     />
                   </div>
-                  
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="educacao" className="text-foreground">Educação</Label>
-                    <Textarea
-                      id="educacao"
-                      placeholder="Ex: Ensino Médio Completo - Escola Secundária de Maputo (2020)"
-                      value={formData.educacao}
-                      onChange={(e) => handleInputChange("educacao", e.target.value)}
-                      className="bg-background min-h-[80px]"
-                    />
-                  </div>
-                  
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="habilidades" className="text-foreground">Habilidades</Label>
-                    <Textarea
-                      id="habilidades"
-                      placeholder="Ex: Comunicação, Trabalho em equipe, Informática básica, Atendimento ao cliente"
-                      value={formData.habilidades}
-                      onChange={(e) => handleInputChange("habilidades", e.target.value)}
-                      className="bg-background min-h-[80px]"
-                    />
-                  </div>
-                  
-                  {!isFirstJob && (
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="experiencia" className="text-foreground">Experiência Profissional</Label>
-                      <Textarea
-                        id="experiencia"
-                        placeholder="Ex: Atendente de Loja - Loja XYZ (2021-2023)&#10;- Atendimento ao cliente&#10;- Organização de produtos"
-                        value={formData.experiencia}
-                        onChange={(e) => handleInputChange("experiencia", e.target.value)}
-                        className="bg-background min-h-[100px]"
-                      />
-                    </div>
-                  )}
                   
                   <Button
                     type="button"
@@ -308,7 +211,7 @@ export function CVGenerator() {
                     ) : (
                       <>
                         <Download className="w-5 h-5 mr-2" />
-                        BAIXAR CURRÍCULO EM PDF
+                        Baixar Currículo
                       </>
                     )}
                   </Button>
