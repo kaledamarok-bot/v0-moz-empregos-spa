@@ -77,28 +77,52 @@ const vagas = [
 // Depoimentos
 const depoimentos = [
   {
-    nome: "Artur",
+    nome: "Artur Machava",
     cargo: "Repositor",
-    texto: "Consegui meu primeiro emprego em apenas 2 semanas usando o MozEmpregos!",
-    avatar: "A"
+    texto: "Consegui meu primeiro emprego em apenas 2 semanas usando o MozEmpregos! Agora trabalho no Supermercado Central e estou muito feliz.",
+    foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
   },
   {
-    nome: "Fátima",
+    nome: "Fátima Nhaca",
     cargo: "Recepcionista",
-    texto: "O gerador de currículo me ajudou muito. Agora trabalho no melhor hotel da cidade!",
-    avatar: "F"
+    texto: "O gerador de currículo me ajudou muito. Agora trabalho no melhor hotel da cidade! Obrigada MozEmpregos!",
+    foto: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
   },
   {
-    nome: "Carlos",
+    nome: "Carlos Sitoe",
     cargo: "Auxiliar de Limpeza",
-    texto: "Estava desempregado há 6 meses. Graças ao MozEmpregos, voltei ao mercado.",
-    avatar: "C"
+    texto: "Estava desempregado há 6 meses. Graças ao MozEmpregos, voltei ao mercado e posso sustentar minha família.",
+    foto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face"
   },
   {
-    nome: "Ana",
+    nome: "Ana Mondlane",
     cargo: "Atendente",
-    texto: "Plataforma simples e eficiente. Recomendo a todos os jovens!",
-    avatar: "A"
+    texto: "Plataforma simples e eficiente. Recomendo a todos os jovens que buscam o primeiro emprego!",
+    foto: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
+  },
+  {
+    nome: "João Tembe",
+    cargo: "Segurança",
+    texto: "Nunca pensei que seria tão fácil encontrar emprego. Em uma semana já estava trabalhando! Muito grato.",
+    foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+  },
+  {
+    nome: "Maria Cossa",
+    cargo: "Caixa",
+    texto: "O MozEmpregos mudou minha vida. Saí do desemprego e agora tenho uma carreira estável. Recomendo muito!",
+    foto: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100&h=100&fit=crop&crop=face"
+  },
+  {
+    nome: "Pedro Matusse",
+    cargo: "Vendedor",
+    texto: "Encontrei a vaga perfeita para mim. A comissão é excelente e o ambiente de trabalho é ótimo!",
+    foto: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face"
+  },
+  {
+    nome: "Teresa Langa",
+    cargo: "Recepcionista",
+    texto: "Meu currículo ficou muito profissional com o gerador do MozEmpregos. Foi isso que me destacou na entrevista!",
+    foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face"
   },
 ]
 
@@ -201,7 +225,7 @@ export default function Home() {
     setCvGerado(true)
   }
 
-  const whatsappNumber = "5531962025222"
+  const whatsappNumber = "5531996202522"
   const whatsappMessage = encodeURIComponent("Olá! Vim pelo MozEmpregos e gostaria de mais informações sobre vagas de emprego.")
 
   return (
@@ -221,7 +245,7 @@ export default function Home() {
             className="bg-[#10b981] hover:bg-[#059669] text-white font-semibold"
           >
             <FileText className="w-4 h-4 mr-2" />
-            Candidatar a Vaga
+            Candidatar-se
           </Button>
         </div>
       </header>
@@ -439,24 +463,29 @@ export default function Home() {
         {/* Depoimentos */}
         <section className="py-12 md:py-16 bg-secondary/30">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-foreground">
-              Histórias de Sucesso
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-2 text-foreground">
+              Historias de Sucesso
             </h2>
+            <p className="text-center text-muted-foreground mb-8">
+              Veja o que nossos candidatos dizem sobre o MozEmpregos
+            </p>
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
               {depoimentos.map((dep, index) => (
                 <Card key={index} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-[#1e40af] text-white flex items-center justify-center text-xl font-bold">
-                        {dep.avatar}
-                      </div>
+                      <img 
+                        src={dep.foto} 
+                        alt={`Foto de ${dep.nome}`}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-[#1e40af]"
+                      />
                       <div>
                         <p className="font-semibold text-foreground">{dep.nome}</p>
-                        <p className="text-sm text-muted-foreground">{dep.cargo}</p>
+                        <p className="text-sm text-[#10b981] font-medium">{dep.cargo}</p>
                       </div>
                     </div>
-                    <p className="text-muted-foreground italic">&ldquo;{dep.texto}&rdquo;</p>
+                    <p className="text-muted-foreground text-sm italic">&ldquo;{dep.texto}&rdquo;</p>
                   </CardContent>
                 </Card>
               ))}
