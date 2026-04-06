@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { supabase } from '@/lib/supabase'
+
 
 // Dados das vagas
 const vagas = [
@@ -165,11 +167,15 @@ export default function Home() {
     return matchSearch && matchProvincia
   })
 
-  const gerarPDF = () => {
+  const gerarPDF = async () => {
     if (!nome || !vaga || !telefone || !email) {
       alert("Por favor, preencha todos os campos obrigatórios.")
       return
     }
+
+    await supabase.from('candidatos').insert([
+      { nome, whatsapp: telefone, vaga, email }
+    ])
 
     const doc = new jsPDF()
     
