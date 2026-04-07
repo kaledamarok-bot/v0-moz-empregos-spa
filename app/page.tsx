@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { jsPDF } from "jspdf"
-import { Search, MapPin, Briefcase, Phone, Mail, User, FileText, MessageCircle, Clock, DollarSign, Star, X } from "lucide-react"
+import { Search, MapPin, Briefcase, Phone, Mail, User, FileText, MessageCircle, Clock, DollarSign, Star, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -154,6 +154,7 @@ export default function Home() {
   const [email, setEmail] = useState("")
   const [qualificacoes, setQualificacoes] = useState("")
   const [cvGerado, setCvGerado] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   
   // Modal de candidatura
   const [modalCandidatura, setModalCandidatura] = useState(false)
@@ -173,20 +174,35 @@ export default function Home() {
       return
     }
 
-              // CÓDIGO CORRIGIDO
-await supabase.from('Sol').insert([
-  { 
-    nome_completo: nome, 
-    vaga_desejada: vaga, 
-    telefone: telefone, 
-    email: email, // Removido o hífen para bater com o Supabase
-    qualificacoes: qualificacoes 
-  }
-])
+    setIsSaving(true)
 
+    try {
+      // SALVAR NO SUPABASE (CORRIGIDO)
+      const { error } = await supabase
+        .from('Sol')
+        .insert([
+          { 
+            nome_completo: nome, 
+            vaga_desejada: vaga, 
+            telefone: telefone, 
+            email: email, // Corrigido de "e-mail" para "email"
+            qualificacoes: qualificacoes 
+          }
+        ])
 
+      if (error) {
+        console.error("Erro no Supabase:", error.message)
+        alert("Erro ao salvar no Supabase: " + error.message + "\n\nVerifique se as Políticas (RLS) estão habilitadas no painel do Supabase.")
+      } else {
+        console.log("Dados salvos com sucesso no Supabase!")
+      }
+    } catch (err) {
+      console.error("Erro inesperado:", err)
+    } finally {
+      setIsSaving(false)
+    }
 
-
+    // GERAÇÃO DO PDF
     const doc = new jsPDF()
     
     // Header
@@ -310,198 +326,84 @@ await supabase.from('Sol').insert([
           </div>
         </section>
 
-        {/* Vagas */}
-        <section className="py-12 md:py-16 bg-secondary/30">
+        {/* Vagas Section */}
+        <section className="py-12 bg-muted/30">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-foreground">
-              Oportunidades de Emprego
-            </h2>
-            
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-              {filteredVagas.map((vaga) => (
-                <Card key={vaga.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-[#1e40af]">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg text-foreground">{vaga.titulo}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{vaga.empresa}</p>
-                      </div>
-                      <span className="bg-[#10b981]/10 text-[#10b981] text-xs font-semibold px-2 py-1 rounded">
-                        Nova
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Clock className="w-6 h-6 text-[#1e40af]" />
+                Vagas Recentes
+              </h2>
+              <span className="text-muted-foreground text-sm">{filteredVagas.length} vagas encontradas</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredVagas.map((v) => (
+                <Card key={v.id} className="hover:shadow-lg transition-shadow border-t-4 border-t-[#1e40af]">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-xl">{v.titulo}</CardTitle>
+                      <span className="bg-blue-100 text-[#1e40af] text-xs font-bold px-2 py-1 rounded">
+                        {v.tipo}
                       </span>
                     </div>
+                    <p className="text-[#10b981] font-semibold">{v.empresa}</p>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">{vaga.descricao}</p>
-                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mb-4">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {vaga.local}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {vaga.tipo}
-                      </span>
-                      <span className="flex items-center gap-1 text-[#10b981] font-semibold">
-                        <DollarSign className="w-4 h-4" />
-                        {vaga.salario}
-                      </span>
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center text-muted-foreground text-sm">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        {v.local}
+                      </div>
+                      <div className="flex items-center text-muted-foreground text-sm">
+                        <DollarSign className="w-4 h-4 mr-2" />
+                        {v.salario}
+                      </div>
                     </div>
                     <Button 
-                      className="w-full bg-[#1e40af] hover:bg-[#1e3a8a] text-white"
                       onClick={() => {
-                        setVagaSelecionada(vaga)
-                        setVaga(vaga.titulo)
+                        setVagaSelecionada(v)
+                        setVaga(v.titulo)
                         setModalCandidatura(true)
                       }}
+                      className="w-full bg-[#1e40af] hover:bg-[#1e3a8a] text-white"
                     >
-                      Candidatar-se
+                      Ver Detalhes
                     </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
-
-            {filteredVagas.length === 0 && (
-              <div className="text-center py-12">
-                <Briefcase className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground text-lg">Nenhuma vaga encontrada com os filtros selecionados.</p>
-              </div>
-            )}
           </div>
         </section>
 
-        {/* Gerador de Currículo */}
-        <section id="curriculo" className="py-12 md:py-16 bg-background">
+        {/* Depoimentos Section */}
+        <section className="py-16 bg-white overflow-hidden">
           <div className="container mx-auto px-4">
-            <div className="max-w-2xl mx-auto">
-              <div className="text-center mb-8">
-                <FileText className="w-12 h-12 mx-auto text-[#1e40af] mb-4" />
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-                  Gerador de Currículo Grátis
-                </h2>
-                <p className="text-muted-foreground">
-                  Preencha seus dados e baixe um currículo profissional em PDF
-                </p>
-              </div>
-
-              <Card className="shadow-lg border-t-4 border-t-[#1e40af]">
-                <CardContent className="p-6 space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="nome" className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-[#1e40af]" />
-                        Nome Completo *
-                      </Label>
-                      <Input
-                        id="nome"
-                        value={nome}
-                        onChange={(e) => setNome(e.target.value)}
-                        placeholder="Seu nome completo"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="vaga" className="flex items-center gap-2">
-                        <Briefcase className="w-4 h-4 text-[#1e40af]" />
-                        Vaga Desejada *
-                      </Label>
-                      <Input
-                        id="vaga"
-                        value={vaga}
-                        onChange={(e) => setVaga(e.target.value)}
-                        placeholder="Ex: Repositor, Recepcionista"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="telefone" className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-[#1e40af]" />
-                        Telefone *
-                      </Label>
-                      <Input
-                        id="telefone"
-                        type="tel"
-                        value={telefone}
-                        onChange={(e) => setTelefone(e.target.value)}
-                        placeholder="+258 84 123 4567"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-[#1e40af]" />
-                        E-mail *
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="seu@email.com"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="qualificacoes" className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-[#1e40af]" />
-                      Qualificações
-                    </Label>
-                    <Textarea
-                      id="qualificacoes"
-                      value={qualificacoes}
-                      onChange={(e) => setQualificacoes(e.target.value)}
-                      placeholder="Descreva suas habilidades, formação e experiências relevantes..."
-                      rows={4}
-                    />
-                  </div>
-
-                  <Button 
-                    onClick={gerarPDF}
-                    className="w-full h-12 text-lg font-semibold bg-[#10b981] hover:bg-[#059669] text-white"
-                  >
-                    <FileText className="w-5 h-5 mr-2" />
-                    Baixar Currículo em PDF
-                  </Button>
-
-                  {cvGerado && (
-                    <p className="text-center text-[#10b981] font-medium">
-                      Currículo gerado com sucesso! Verifique seus downloads.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Quem usou, aprovou!</h2>
+              <p className="text-muted-foreground">Milhares de jovens moçambicanos já conseguiram emprego através da nossa plataforma.</p>
             </div>
-          </div>
-        </section>
 
-        {/* Depoimentos */}
-        <section className="py-12 md:py-16 bg-secondary/30">
-          <div className="container mx-auto px-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-center mb-2 text-foreground">
-              Historias de Sucesso
-            </h2>
-            <p className="text-center text-muted-foreground mb-8">
-              Veja o que nossos candidatos dizem sobre o MozEmpregos
-            </p>
-            
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
-              {depoimentos.map((dep, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <img 
-                        src={dep.foto} 
-                        alt={`Foto de ${dep.nome}`}
-                        className="w-14 h-14 rounded-full object-cover border-2 border-[#1e40af]"
-                      />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {depoimentos.map((d, i) => (
+                <Card key={i} className="bg-muted/20 border-none shadow-sm">
+                  <CardContent className="pt-6">
+                    <div className="flex gap-1 mb-4">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <p className="text-sm italic mb-6">"{d.texto}"</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#1e40af] flex items-center justify-center text-white font-bold">
+                        {d.nome[0]}
+                      </div>
                       <div>
-                        <p className="font-semibold text-foreground">{dep.nome}</p>
-                        <p className="text-sm text-[#10b981] font-medium">{dep.cargo}</p>
+                        <p className="font-bold text-sm">{d.nome}</p>
+                        <p className="text-xs text-muted-foreground">{d.cargo}</p>
                       </div>
                     </div>
-                    <p className="text-muted-foreground text-sm italic">&ldquo;{dep.texto}&rdquo;</p>
                   </CardContent>
                 </Card>
               ))}
@@ -509,181 +411,194 @@ await supabase.from('Sol').insert([
           </div>
         </section>
 
-        {/* Aviso Anti-Burla */}
-        <section className="py-8 bg-red-50 border-y border-red-200">
+        {/* Call to Action */}
+        <section className="py-16 bg-[#10b981] text-white">
           <div className="container mx-auto px-4 text-center">
-            <p className="text-red-700 font-semibold text-lg">
-              Nunca pague por entrevistas ou processos seletivos! O MozEmpregos é 100% gratuito.
-            </p>
+            <h2 className="text-3xl font-bold mb-6 text-balance">Dúvidas? Fale conosco pelo WhatsApp</h2>
+            <p className="text-xl mb-8 opacity-90">Atendimento grátis para ajudar você a conseguir sua vaga.</p>
+            <a 
+              href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-white text-[#10b981] px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
+            >
+              <MessageCircle className="w-6 h-6" />
+              Chamar no WhatsApp
+            </a>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#1e40af] text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Briefcase className="h-6 w-6" />
-            <span className="text-lg font-bold">MozEmpregos</span>
+      <footer className="bg-[#1e3a8a] text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Briefcase className="h-6 w-6" />
+                <span className="text-xl font-bold">MozEmpregos</span>
+              </div>
+              <p className="text-blue-200 text-sm">
+                A maior plataforma de empregos para jovens em Moçambique. Nosso objetivo é reduzir o desemprego e criar oportunidades.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4">Links Rápidos</h3>
+              <ul className="space-y-2 text-sm text-blue-200">
+                <li><button onClick={() => setModalCandidatura(true)} className="hover:text-white">Gerar Currículo</button></li>
+                <li><a href="#" className="hover:text-white">Vagas em Maputo</a></li>
+                <li><a href="#" className="hover:text-white">Vagas na Beira</a></li>
+                <li><a href="#" className="hover:text-white">Vagas em Nampula</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4">Contato</h3>
+              <ul className="space-y-2 text-sm text-blue-200">
+                <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> contato@mozempregos.co.mz</li>
+                <li className="flex items-center gap-2"><Phone className="w-4 h-4" /> +258 84 000 0000</li>
+                <li className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Av. 25 de Setembro, Maputo</li>
+              </ul>
+            </div>
           </div>
-          <p className="text-blue-200 text-sm">
-            Conectando jovens moçambicanos ao mercado de trabalho desde 2024
-          </p>
-          <p className="text-blue-300 text-xs mt-4">
-            &copy; 2024 MozEmpregos. Todos os direitos reservados.
-          </p>
+          <div className="border-t border-blue-800 pt-8 text-center text-sm text-blue-300">
+            <p>© {new Date().getFullYear()} MozEmpregos. Todos os direitos reservados.</p>
+          </div>
         </div>
       </footer>
 
-      {/* WhatsApp Flutuante */}
-      <a
-        href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#128C7E] text-white p-4 rounded-full shadow-lg transition-all hover:scale-110"
-        aria-label="Falar pelo WhatsApp"
-      >
-        <MessageCircle className="w-7 h-7" />
-      </a>
-
-      {/* Modal Candidatura */}
+      {/* Modal de Candidatura / Gerador de CV */}
       {modalCandidatura && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setModalCandidatura(false)
-          }}
-        >
-          <div 
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-title"
-            aria-describedby="modal-description"
-            className="bg-background rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
-          >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 id="modal-title" className="text-xl font-bold text-foreground flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-[#1e40af]" />
-                  {vagaSelecionada ? `Candidatura: ${vagaSelecionada.titulo}` : "Preencher Currículo"}
-                </h3>
-                <button 
-                  onClick={() => setModalCandidatura(false)}
-                  className="text-muted-foreground hover:text-foreground"
-                  aria-label="Fechar"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <p id="modal-description" className="text-muted-foreground text-sm mb-6">
-                {vagaSelecionada 
-                  ? `Preencha seus dados para se candidatar à vaga de ${vagaSelecionada.titulo} na ${vagaSelecionada.empresa}.`
-                  : "Preencha seus dados e baixe seu currículo em PDF para se candidatar às vagas."
-                }
-              </p>
-              
-              {vagaSelecionada && (
-                <div className="bg-[#1e40af]/5 border border-[#1e40af]/20 rounded-lg p-4 mb-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-foreground">{vagaSelecionada.titulo}</p>
-                      <p className="text-sm text-muted-foreground">{vagaSelecionada.empresa} - {vagaSelecionada.local}</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in duration-300">
+            <button 
+              onClick={() => setModalCandidatura(false)}
+              className="absolute right-4 top-4 p-2 hover:bg-muted rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <CardHeader className="border-b bg-muted/30">
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <FileText className="w-6 h-6 text-[#1e40af]" />
+                {vagaSelecionada ? `Candidatar-se para: ${vagaSelecionada.titulo}` : "Gerar Meu Currículo Grátis"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {!cvGerado ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="nome">Nome Completo *</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          id="nome" 
+                          placeholder="Ex: Artur Machava" 
+                          className="pl-10"
+                          value={nome}
+                          onChange={(e) => setNome(e.target.value)}
+                        />
+                      </div>
                     </div>
-                    <span className="text-[#10b981] font-semibold text-sm">{vagaSelecionada.salario}</span>
+                    <div className="space-y-2">
+                      <Label htmlFor="vaga">Vaga Desejada *</Label>
+                      <div className="relative">
+                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          id="vaga" 
+                          placeholder="Ex: Repositor de Mercadorias" 
+                          className="pl-10"
+                          value={vaga}
+                          onChange={(e) => setVaga(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="telefone">Telefone *</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          id="telefone" 
+                          placeholder="Ex: +258 84 000 0000" 
+                          className="pl-10"
+                          value={telefone}
+                          onChange={(e) => setTelefone(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">E-mail *</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          id="email" 
+                          type="email" 
+                          placeholder="Ex: artur@email.com" 
+                          className="pl-10"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="qualificacoes">Resumo de Qualificações / Experiência</Label>
+                    <Textarea 
+                      id="qualificacoes" 
+                      placeholder="Conte um pouco sobre suas habilidades e onde já trabalhou..." 
+                      className="min-h-[120px] resize-none"
+                      value={qualificacoes}
+                      onChange={(e) => setQualificacoes(e.target.value)}
+                    />
+                  </div>
+                  <Button 
+                    onClick={gerarPDF}
+                    disabled={isSaving}
+                    className="w-full bg-[#10b981] hover:bg-[#059669] text-white py-6 text-lg font-bold shadow-lg"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Salvando dados...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-5 h-5 mr-2" />
+                        Gerar Currículo e Enviar Candidatura
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Ao clicar em gerar, seus dados serão enviados para a empresa e um arquivo PDF será baixado no seu dispositivo.
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center py-8 space-y-6">
+                  <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FileText className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-green-600">Sucesso!</h3>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    Seu currículo foi gerado e sua candidatura foi enviada com sucesso para o banco de dados.
+                  </p>
+                  <div className="flex flex-col gap-3">
+                    <Button 
+                      onClick={() => setCvGerado(false)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      Editar Informações
+                    </Button>
+                    <Button 
+                      onClick={() => setModalCandidatura(false)}
+                      className="w-full bg-[#1e40af] hover:bg-[#1e3a8a]"
+                    >
+                      Voltar para as Vagas
+                    </Button>
                   </div>
                 </div>
               )}
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-[#1e40af]" />
-                    Nome Completo *
-                  </Label>
-                  <Input 
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    placeholder="Seu nome completo" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-[#1e40af]" />
-                    Vaga Desejada *
-                  </Label>
-                  <Input 
-                    value={vaga}
-                    onChange={(e) => setVaga(e.target.value)}
-                    placeholder="Ex: Repositor, Recepcionista" 
-                  />
-                </div>
-                <div className="grid gap-4 grid-cols-2">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-[#1e40af]" />
-                      Telefone *
-                    </Label>
-                    <Input 
-                      type="tel"
-                      value={telefone}
-                      onChange={(e) => setTelefone(e.target.value)}
-                      placeholder="+258 84 123 4567" 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-[#1e40af]" />
-                      E-mail *
-                    </Label>
-                    <Input 
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="seu@email.com" 
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-[#1e40af]" />
-                    Qualificações
-                  </Label>
-                  <Textarea 
-                    value={qualificacoes}
-                    onChange={(e) => setQualificacoes(e.target.value)}
-                    placeholder="Descreva suas habilidades, formação e experiências relevantes..." 
-                    rows={4} 
-                  />
-                </div>
-                
-                <div className="flex gap-3 pt-4">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => setModalCandidatura(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    className="flex-1 bg-[#10b981] hover:bg-[#059669] text-white"
-                    onClick={() => {
-                      gerarPDF()
-                      setModalCandidatura(false)
-                    }}
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Baixar Currículo
-                  </Button>
-                </div>
-
-                {cvGerado && (
-                  <p className="text-center text-[#10b981] font-medium">
-                    Currículo gerado com sucesso! Verifique seus downloads.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
