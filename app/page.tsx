@@ -173,15 +173,17 @@ export default function Home() {
       return
     }
 
-              await supabase.from('Sol').insert([
-      { 
-        nome_completo: nome, 
-        vaga_desejada: vaga, 
-        telefone: telefone, 
-        "e-mail": email, // Com aspas porque tem hífen no banco
-        qualificacoes: qualificacoes 
-      }
-    ])
+              // CÓDIGO CORRIGIDO
+await supabase.from('Sol').insert([
+  { 
+    nome_completo: nome, 
+    vaga_desejada: vaga, 
+    telefone: telefone, 
+    email: email, // Removido o hífen para bater com o Supabase
+    qualificacoes: qualificacoes 
+  }
+])
+
 
 
 
