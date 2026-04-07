@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { supabase } from '@/lib/supabase'
 
 
 // Dados das vagas
@@ -177,29 +176,30 @@ export default function Home() {
     setIsSaving(true)
 
     try {
-      // 1. TENTA SALVAR NO SUPABASE PRIMEIRO
-      const { error } = await supabase
-        .from('Sol')
-        .insert([
-          { 
-            nome_completo: nome, 
-            vaga_desejada: vaga, 
-            telefone: telefone, 
-            email: email, 
-            qualificacoes: qualificacoes 
-          }
-        ])
+      // 1. ENVIA OS DADOS PARA O E-MAIL VIA FORMSPREE
+      const response = await fetch("https://formspree.io/f/mqaebrjr", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          nome_completo: nome,
+          vaga_desejada: vaga,
+          telefone: telefone,
+          email: email,
+          qualificacoes: qualificacoes,
+          _subject: `Nova Candidatura: ${nome} - ${vaga}`
+        })
+      })
 
-      if (error) {
-        console.error("Erro no Supabase:", error.message)
-        alert("Erro ao salvar no banco de dados: " + error.message)
-        setIsSaving(false)
-        return // PARA AQUI SE DER ERRO NO BANCO
+      if (!response.ok) {
+        throw new Error("Falha ao enviar os dados para o e-mail.")
       }
 
-      console.log("Dados salvos com sucesso no Supabase!")
+      console.log("Dados enviados com sucesso para o e-mail!")
 
-      // 2. SÓ GERA O PDF SE SALVAR NO BANCO COM SUCESSO
+      // 2. GERA O PDF
       const doc = new jsPDF()
       
       // Header
@@ -254,7 +254,7 @@ export default function Home() {
       setCvGerado(true)
     } catch (err) {
       console.error("Erro inesperado:", err)
-      alert("Ocorreu um erro inesperado ao conectar com o Supabase.")
+      alert("Ocorreu um erro ao enviar sua candidatura. Por favor, tente novamente.")
     } finally {
       setIsSaving(false)
     }
@@ -305,24 +305,21 @@ export default function Home() {
                     placeholder="Buscar vaga ou empresa..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-12 text-foreground"
+                    className="pl-10 h-12 text-black"
                   />
                 </div>
-                <div className="w-full md:w-56">
-                  <Select value={selectedProvincia} onValueChange={setSelectedProvincia}>
-                    <SelectTrigger className="h-12 text-foreground">
-                      <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {provincias.map((p) => (
-                        <SelectItem key={p} value={p}>{p}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button className="h-12 px-8 bg-[#1e40af] hover:bg-[#1e3a8a] text-white">
-                  Buscar
+                <Select value={selectedProvincia} onValueChange={setSelectedProvincia}>
+                  <SelectTrigger className="w-full md:w-[220px] h-12 text-black">
+                    <SelectValue placeholder="Província" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {provincias.map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button className="h-12 px-8 bg-[#10b981] hover:bg-[#059669] font-bold">
+                  BUSCAR
                 </Button>
               </div>
             </div>
@@ -330,48 +327,51 @@ export default function Home() {
         </section>
 
         {/* Vagas Section */}
-        <section className="py-12 bg-muted/30">
+        <section className="py-12 bg-slate-50">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Clock className="w-6 h-6 text-[#1e40af]" />
-                Vagas Recentes
-              </h2>
-              <span className="text-muted-foreground text-sm">{filteredVagas.length} vagas encontradas</span>
+              <h2 className="text-2xl font-bold text-[#1e40af]">Vagas em Destaque</h2>
+              <span className="text-muted-foreground">{filteredVagas.length} vagas encontradas</span>
             </div>
-
+            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredVagas.map((v) => (
-                <Card key={v.id} className="hover:shadow-lg transition-shadow border-t-4 border-t-[#1e40af]">
-                  <CardHeader>
+                <Card key={v.id} className="hover:shadow-lg transition-shadow border-blue-100">
+                  <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
-                      <CardTitle className="text-xl">{v.titulo}</CardTitle>
-                      <span className="bg-blue-100 text-[#1e40af] text-xs font-bold px-2 py-1 rounded">
+                      <div className="bg-blue-50 p-2 rounded-lg">
+                        <Briefcase className="w-6 h-6 text-[#1e40af]" />
+                      </div>
+                      <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-1 rounded">
                         {v.tipo}
                       </span>
                     </div>
-                    <p className="text-[#10b981] font-semibold">{v.empresa}</p>
+                    <CardTitle className="text-xl mt-4">{v.titulo}</CardTitle>
+                    <p className="text-muted-foreground font-medium">{v.empresa}</p>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center text-muted-foreground text-sm">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        {v.local}
+                    <div className="flex flex-col gap-2 text-sm text-muted-foreground mb-4">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        {v.local}, Moçambique
                       </div>
-                      <div className="flex items-center text-muted-foreground text-sm">
-                        <DollarSign className="w-4 h-4 mr-2" />
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" />
                         {v.salario}
                       </div>
                     </div>
+                    <p className="text-sm line-clamp-2 mb-6">
+                      {v.descricao}
+                    </p>
                     <Button 
                       onClick={() => {
                         setVagaSelecionada(v)
                         setVaga(v.titulo)
                         setModalCandidatura(true)
                       }}
-                      className="w-full bg-[#1e40af] hover:bg-[#1e3a8a] text-white"
+                      className="w-full bg-white text-[#1e40af] border-2 border-[#1e40af] hover:bg-blue-50 font-bold"
                     >
-                      Ver Detalhes
+                      VER DETALHES
                     </Button>
                   </CardContent>
                 </Card>
@@ -383,30 +383,25 @@ export default function Home() {
         {/* Depoimentos Section */}
         <section className="py-16 bg-white overflow-hidden">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Quem usou, aprovou!</h2>
-              <p className="text-muted-foreground">Milhares de jovens moçambicanos já conseguiram emprego através da nossa plataforma.</p>
-            </div>
-
+            <h2 className="text-3xl font-bold text-center text-[#1e40af] mb-12">Quem usou, aprovou!</h2>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {depoimentos.map((d, i) => (
-                <Card key={i} className="bg-muted/20 border-none shadow-sm">
+                <Card key={i} className="bg-blue-50 border-none shadow-sm">
                   <CardContent className="pt-6">
-                    <div className="flex gap-1 mb-4">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <p className="text-sm italic mb-6">"{d.texto}"</p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#1e40af] flex items-center justify-center text-white font-bold">
-                        {d.nome[0]}
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center overflow-hidden">
+                        <User className="w-8 h-8 text-blue-600" />
                       </div>
                       <div>
                         <p className="font-bold text-sm">{d.nome}</p>
                         <p className="text-xs text-muted-foreground">{d.cargo}</p>
                       </div>
                     </div>
+                    <div className="flex mb-2">
+                      {[1,2,3,4,5].map(s => <Star key={s} className="w-3 h-3 fill-yellow-400 text-yellow-400" />)}
+                    </div>
+                    <p className="text-sm italic text-slate-600">"${d.texto}"</p>
                   </CardContent>
                 </Card>
               ))}
@@ -414,25 +409,17 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Call to Action */}
-        <section className="py-16 bg-[#10b981] text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-6 text-balance">Dúvidas? Fale conosco pelo WhatsApp</h2>
-            <p className="text-xl mb-8 opacity-90">Atendimento grátis para ajudar você a conseguir sua vaga.</p>
-            <a 
-              href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-white text-[#10b981] px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
-            >
-              <MessageCircle className="w-6 h-6" />
-              Chamar no WhatsApp
-            </a>
-          </div>
-        </section>
+        {/* WhatsApp Floating */}
+        <a 
+          href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-6 z-50 bg-[#25d366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center"
+        >
+          <MessageCircle className="w-8 h-8" />
+        </a>
       </main>
 
-      {/* Footer */}
       <footer className="bg-[#1e3a8a] text-white py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
@@ -441,49 +428,51 @@ export default function Home() {
                 <Briefcase className="h-6 w-6" />
                 <span className="text-xl font-bold">MozEmpregos</span>
               </div>
-              <p className="text-blue-200 text-sm">
-                A maior plataforma de empregos para jovens em Moçambique. Nosso objetivo é reduzir o desemprego e criar oportunidades.
+              <p className="text-blue-100 text-sm">
+                A maior plataforma de empregos para o primeiro trabalho em Moçambique.
               </p>
             </div>
             <div>
-              <h3 className="font-bold mb-4">Links Rápidos</h3>
-              <ul className="space-y-2 text-sm text-blue-200">
-                <li><button onClick={() => setModalCandidatura(true)} className="hover:text-white">Gerar Currículo</button></li>
-                <li><a href="#" className="hover:text-white">Vagas em Maputo</a></li>
-                <li><a href="#" className="hover:text-white">Vagas na Beira</a></li>
-                <li><a href="#" className="hover:text-white">Vagas em Nampula</a></li>
+              <h3 className="font-bold mb-4">Links Úteis</h3>
+              <ul className="space-y-2 text-sm text-blue-100">
+                <li><a href="#" className="hover:text-white">Sobre Nós</a></li>
+                <li><a href="#" className="hover:text-white">Vagas Recentes</a></li>
+                <li><a href="#" className="hover:text-white">Gerador de Currículo</a></li>
+                <li><a href="#" className="hover:text-white">Dicas de Entrevista</a></li>
               </ul>
             </div>
             <div>
               <h3 className="font-bold mb-4">Contato</h3>
-              <ul className="space-y-2 text-sm text-blue-200">
+              <ul className="space-y-2 text-sm text-blue-100">
                 <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> contato@mozempregos.co.mz</li>
                 <li className="flex items-center gap-2"><Phone className="w-4 h-4" /> +258 84 000 0000</li>
-                <li className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Av. 25 de Setembro, Maputo</li>
+                <li className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Maputo, Moçambique</li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-blue-800 pt-8 text-center text-sm text-blue-300">
-            <p>© {new Date().getFullYear()} MozEmpregos. Todos os direitos reservados.</p>
+          <div className="border-t border-blue-800 pt-8 text-center text-sm text-blue-200">
+            <p>© 2026 MozEmpregos. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>
 
-      {/* Modal de Candidatura / Gerador de CV */}
+      {/* Modal de Candidatura */}
       {modalCandidatura && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in duration-300">
-            <button 
-              onClick={() => setModalCandidatura(false)}
-              className="absolute right-4 top-4 p-2 hover:bg-muted rounded-full transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <CardHeader className="border-b bg-muted/30">
-              <CardTitle className="text-2xl flex items-center gap-2">
-                <FileText className="w-6 h-6 text-[#1e40af]" />
-                {vagaSelecionada ? `Candidatar-se para: ${vagaSelecionada.titulo}` : "Gerar Meu Currículo Grátis"}
-              </CardTitle>
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border-none">
+            <CardHeader className="bg-[#1e40af] text-white sticky top-0 z-10">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-2xl">Gerador de Currículo</CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setModalCandidatura(false)}
+                  className="text-white hover:bg-blue-700"
+                >
+                  <X className="w-6 h-6" />
+                </Button>
+              </div>
+              <p className="text-blue-100 text-sm">Preencha seus dados para gerar o PDF e se candidatar.</p>
             </CardHeader>
             <CardContent className="pt-6">
               {!cvGerado ? (
@@ -561,7 +550,7 @@ export default function Home() {
                     {isSaving ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Salvando dados...
+                        Enviando candidatura...
                       </>
                     ) : (
                       <>
@@ -578,7 +567,7 @@ export default function Home() {
                   </div>
                   <h3 className="text-2xl font-bold text-green-600">Sucesso!</h3>
                   <p className="text-muted-foreground max-w-sm mx-auto">
-                    Seu currículo foi gerado e sua candidatura foi enviada com sucesso para o banco de dados.
+                    Seu currículo foi gerado e sua candidatura foi enviada com sucesso para o e-mail.
                   </p>
                   <div className="flex flex-col gap-3">
                     <Button 
