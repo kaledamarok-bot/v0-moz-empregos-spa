@@ -158,7 +158,7 @@ export default function Home() {
   
   // Modal de candidatura
   const [modalCandidatura, setModalCandidatura] = useState(false)
-  const [vagaSelecionada, setVagaSelecionada] = useState<typeof vagas[0] | null>(null)
+  const [vagaSelecionada, setVagaSelecionada] = useState(null)
 
   const filteredVagas = vagas.filter(v => {
     const matchSearch = v.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -177,7 +177,7 @@ export default function Home() {
     setIsSaving(true)
 
     try {
-      // SALVAR NO SUPABASE (CORRIGIDO)
+      // 1. TENTA SALVAR NO SUPABASE PRIMEIRO
       const { error } = await supabase
         .from('Sol')
         .insert([
@@ -185,76 +185,79 @@ export default function Home() {
             nome_completo: nome, 
             vaga_desejada: vaga, 
             telefone: telefone, 
-            email: email, // Corrigido de "e-mail" para "email"
+            email: email, 
             qualificacoes: qualificacoes 
           }
         ])
 
       if (error) {
         console.error("Erro no Supabase:", error.message)
-        alert("Erro ao salvar no Supabase: " + error.message + "\n\nVerifique se as Políticas (RLS) estão habilitadas no painel do Supabase.")
-      } else {
-        console.log("Dados salvos com sucesso no Supabase!")
+        alert("Erro ao salvar no banco de dados: " + error.message)
+        setIsSaving(false)
+        return // PARA AQUI SE DER ERRO NO BANCO
       }
+
+      console.log("Dados salvos com sucesso no Supabase!")
+
+      // 2. SÓ GERA O PDF SE SALVAR NO BANCO COM SUCESSO
+      const doc = new jsPDF()
+      
+      // Header
+      doc.setFillColor(30, 64, 175) // Royal Blue
+      doc.rect(0, 0, 210, 40, "F")
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(24)
+      doc.setFont("helvetica", "bold")
+      doc.text(nome.toUpperCase(), 105, 25, { align: "center" })
+      
+      // Linha decorativa
+      doc.setFillColor(16, 185, 129) // Emerald
+      doc.rect(0, 40, 210, 3, "F")
+      
+      // Informações de contato
+      doc.setTextColor(30, 64, 175)
+      doc.setFontSize(11)
+      doc.setFont("helvetica", "normal")
+      doc.text(`Telefone: ${telefone}  |  E-mail: ${email}`, 105, 52, { align: "center" })
+      
+      // Vaga desejada
+      doc.setTextColor(0, 0, 0)
+      doc.setFontSize(14)
+      doc.setFont("helvetica", "bold")
+      doc.text("VAGA DESEJADA", 20, 70)
+      doc.setFillColor(16, 185, 129)
+      doc.rect(20, 72, 40, 1, "F")
+      doc.setFontSize(12)
+      doc.setFont("helvetica", "normal")
+      doc.text(vaga, 20, 82)
+      
+      // Qualificações
+      if (qualificacoes) {
+        doc.setFontSize(14)
+        doc.setFont("helvetica", "bold")
+        doc.text("QUALIFICAÇÕES", 20, 100)
+        doc.setFillColor(16, 185, 129)
+        doc.rect(20, 102, 40, 1, "F")
+        doc.setFontSize(11)
+        doc.setFont("helvetica", "normal")
+        
+        const linhas = doc.splitTextToSize(qualificacoes, 170)
+        doc.text(linhas, 20, 112)
+      }
+      
+      // Footer
+      doc.setFontSize(9)
+      doc.setTextColor(128, 128, 128)
+      doc.text("Currículo gerado por MozEmpregos - www.mozempregos.co.mz", 105, 285, { align: "center" })
+      
+      doc.save(`curriculo-${nome.toLowerCase().replace(/\s+/g, "-")}.pdf`)
+      setCvGerado(true)
     } catch (err) {
       console.error("Erro inesperado:", err)
+      alert("Ocorreu um erro inesperado ao conectar com o Supabase.")
     } finally {
       setIsSaving(false)
     }
-
-    // GERAÇÃO DO PDF
-    const doc = new jsPDF()
-    
-    // Header
-    doc.setFillColor(30, 64, 175) // Royal Blue
-    doc.rect(0, 0, 210, 40, "F")
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(24)
-    doc.setFont("helvetica", "bold")
-    doc.text(nome.toUpperCase(), 105, 25, { align: "center" })
-    
-    // Linha decorativa
-    doc.setFillColor(16, 185, 129) // Emerald
-    doc.rect(0, 40, 210, 3, "F")
-    
-    // Informações de contato
-    doc.setTextColor(30, 64, 175)
-    doc.setFontSize(11)
-    doc.setFont("helvetica", "normal")
-    doc.text(`Telefone: ${telefone}  |  E-mail: ${email}`, 105, 52, { align: "center" })
-    
-    // Vaga desejada
-    doc.setTextColor(0, 0, 0)
-    doc.setFontSize(14)
-    doc.setFont("helvetica", "bold")
-    doc.text("VAGA DESEJADA", 20, 70)
-    doc.setFillColor(16, 185, 129)
-    doc.rect(20, 72, 40, 1, "F")
-    doc.setFontSize(12)
-    doc.setFont("helvetica", "normal")
-    doc.text(vaga, 20, 82)
-    
-    // Qualificações
-    if (qualificacoes) {
-      doc.setFontSize(14)
-      doc.setFont("helvetica", "bold")
-      doc.text("QUALIFICAÇÕES", 20, 100)
-      doc.setFillColor(16, 185, 129)
-      doc.rect(20, 102, 40, 1, "F")
-      doc.setFontSize(11)
-      doc.setFont("helvetica", "normal")
-      
-      const linhas = doc.splitTextToSize(qualificacoes, 170)
-      doc.text(linhas, 20, 112)
-    }
-    
-    // Footer
-    doc.setFontSize(9)
-    doc.setTextColor(128, 128, 128)
-    doc.text("Currículo gerado por MozEmpregos - www.mozempregos.co.mz", 105, 285, { align: "center" })
-    
-    doc.save(`curriculo-${nome.toLowerCase().replace(/\s+/g, "-")}.pdf`)
-    setCvGerado(true)
   }
 
   const whatsappNumber = "5531996202522"
@@ -567,9 +570,6 @@ export default function Home() {
                       </>
                     )}
                   </Button>
-                  <p className="text-center text-xs text-muted-foreground">
-                    Ao clicar em gerar, seus dados serão enviados para a empresa e um arquivo PDF será baixado no seu dispositivo.
-                  </p>
                 </div>
               ) : (
                 <div className="text-center py-8 space-y-6">
