@@ -173,15 +173,16 @@ export default function Home() {
       return
     }
 
-          await supabase.from('Sol').insert([
-        { 
-          nome_completo: nome, 
-          vaga_desejada: vaga, 
-          telefone: telefone, 
-          email: email,
-          qualificacoes: qualificacoes 
-        }
-      ])
+              await supabase.from('Sol').insert([
+      { 
+        nome_completo: nome, 
+        vaga_desejada: vaga, 
+        telefone: telefone, 
+        "e-mail": email, // Com aspas porque tem hífen no banco
+        qualificacoes: qualificacoes 
+      }
+    ])
+
 
 
     const doc = new jsPDF()
